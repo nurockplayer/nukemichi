@@ -7,4 +7,5 @@ uv sync
 uv run fastapi dev app/main.py
 uv run pytest -q
 uv run python -m app.validate_data ikebukuro
+uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --dry-run
 ```

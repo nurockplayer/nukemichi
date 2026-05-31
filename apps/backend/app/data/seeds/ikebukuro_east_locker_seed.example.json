@@ -1,0 +1,55 @@
+{
+  "station_id": "ikebukuro",
+  "summary": "Example seed draft for adding a surveyed east-side locker POI candidate.",
+  "nodes": [
+    {
+      "node_id": "survey_east_locker_anchor",
+      "station_id": "ikebukuro",
+      "floor_id": "B1",
+      "type": "poi_anchor",
+      "name": "Survey East Locker Anchor",
+      "name_ja": "調査用東側ロッカーアンカー",
+      "name_zh": "調查用東側置物櫃錨點",
+      "x": 332,
+      "y": 92,
+      "connected_zone_ids": ["east_exit_underground_area"]
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "edge_east_passage_to_survey_locker",
+      "station_id": "ikebukuro",
+      "from_node_id": "east_underground_passage",
+      "to_node_id": "survey_east_locker_anchor",
+      "distance_m": 18,
+      "bidirectional": true,
+      "floor_change": false,
+      "from_floor_id": "B1",
+      "to_floor_id": "B1",
+      "accessibility": {
+        "stairs_only": false,
+        "elevator_available": false,
+        "escalator_available": false,
+        "barrier_free": true
+      }
+    }
+  ],
+  "pois": [
+    {
+      "poi_id": "survey_east_locker",
+      "station_id": "ikebukuro",
+      "floor_id": "B1",
+      "anchor_node_id": "survey_east_locker_anchor",
+      "category": "locker",
+      "name": "Survey East Locker",
+      "name_ja": "調査用東側コインロッカー",
+      "name_zh": "調查用東側投幣置物櫃",
+      "description": "Draft POI from survey notes; not yet promoted to demo data.",
+      "opening_hours": "Unknown",
+      "tags": ["survey", "draft", "locker"]
+    }
+  ],
+  "zones": [],
+  "survey_notes": [],
+  "fingerprint_collection_points": []
+}

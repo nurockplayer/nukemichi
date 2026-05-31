@@ -32,6 +32,10 @@ jobs:
         working-directory: apps/backend
         run: uv run python -m app.validate_data ikebukuro
 
+      - name: Dry-run example seed
+        working-directory: apps/backend
+        run: uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --dry-run
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest

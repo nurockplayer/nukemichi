@@ -45,6 +45,8 @@ The backend owns the station graph, routing, localization, and demo data. The fr
 
 For data expansion rules, survey-note conventions, and fingerprint collection planning, see [docs/ikebukuro-data-expansion.md](docs/ikebukuro-data-expansion.md).
 
+For reviewable POI and graph additions before editing the main demo JSON, see [docs/seed-pipeline.md](docs/seed-pipeline.md).
+
 ## How to run
 
 Docker Compose:
@@ -75,6 +77,13 @@ Validate demo station data:
 ```bash
 cd apps/backend
 uv run python -m app.validate_data ikebukuro
+```
+
+Dry-run a station data seed:
+
+```bash
+cd apps/backend
+uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --dry-run
 ```
 
 Frontend local dev:
@@ -191,6 +200,7 @@ Phase 1.2:
 - add real station survey notes
 - add POI editor
 - add fingerprint collection schema
+- add dry-run seed pipeline for reviewable POI and graph additions
 
 Phase 2:
 
