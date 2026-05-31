@@ -43,6 +43,8 @@ The backend owns the station graph, routing, localization, and demo data. The fr
 - `POST /localize/wifi` runs demo fingerprint matching on the backend.
 - Zustand stores selected station, floor, start node/zone, localization result, destination, route, preferences, and POI filters in the frontend.
 
+For data expansion rules, survey-note conventions, and fingerprint collection planning, see [docs/ikebukuro-data-expansion.md](docs/ikebukuro-data-expansion.md).
+
 ## How to run
 
 Docker Compose:
@@ -113,6 +115,18 @@ Ikebukuro map:
 
 ```bash
 curl http://localhost:8000/stations/ikebukuro/map
+```
+
+Survey notes:
+
+```bash
+curl http://localhost:8000/stations/ikebukuro/survey-notes
+```
+
+Fingerprint collection points:
+
+```bash
+curl http://localhost:8000/stations/ikebukuro/fingerprint-collection-points
 ```
 
 Demo Wi-Fi localization:

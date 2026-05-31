@@ -7,11 +7,13 @@ from app.data_store import get_station_map, load_station_bundle
 from app.localization import estimate_wifi_zone
 from app.routing import calculate_route
 from app.schemas import (
+    FingerprintCollectionPoint,
     LocationZone,
     Poi,
     RouteRequest,
     RouteResponse,
     Station,
+    StationSurveyNote,
     StationMapResponse,
     WifiLocalizationRequest,
     WifiLocalizationResponse,
@@ -69,6 +71,16 @@ def station_pois(
 @app.get("/stations/{station_id}/zones", response_model=list[LocationZone])
 def station_zones(station_id: str) -> list[LocationZone]:
     return load_station_bundle(station_id).zones
+
+
+@app.get("/stations/{station_id}/survey-notes", response_model=list[StationSurveyNote])
+def station_survey_notes(station_id: str) -> list[StationSurveyNote]:
+    return load_station_bundle(station_id).survey_notes
+
+
+@app.get("/stations/{station_id}/fingerprint-collection-points", response_model=list[FingerprintCollectionPoint])
+def station_fingerprint_collection_points(station_id: str) -> list[FingerprintCollectionPoint]:
+    return load_station_bundle(station_id).fingerprint_collection_points
 
 
 @app.post("/localize/wifi", response_model=WifiLocalizationResponse)

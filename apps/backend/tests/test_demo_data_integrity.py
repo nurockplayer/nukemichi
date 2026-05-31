@@ -41,6 +41,18 @@ def test_demo_data_references_existing_entities():
         assert mapping.zone_id in zone_ids
         assert any(beacon.beacon_id == mapping.beacon_id for beacon in bundle.beacons)
 
+    for note in bundle.survey_notes:
+        assert note.floor_id in floor_ids
+        assert set(note.related_node_ids).issubset(node_ids)
+        assert set(note.related_zone_ids).issubset(zone_ids)
+
+    for point in bundle.fingerprint_collection_points:
+        assert point.floor_id in floor_ids
+        assert point.zone_id in zone_ids
+        if point.suggested_node_id:
+            assert point.suggested_node_id in node_ids
+        assert point.min_samples >= 1
+
 
 def test_main_pois_are_reachable_from_primary_gates():
     bundle = load_station_bundle("ikebukuro")

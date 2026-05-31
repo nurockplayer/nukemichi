@@ -49,6 +49,26 @@ def test_zones_endpoint_returns_location_zones():
     assert any(zone["zone_id"] == "jr_east_gate_area" for zone in body)
 
 
+def test_survey_notes_endpoint_returns_reviewable_notes():
+    response = client.get("/stations/ikebukuro/survey-notes")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body
+    assert body[0]["status"] in {"needs_review", "accepted", "applied", "rejected"}
+    assert body[0]["related_node_ids"]
+
+
+def test_fingerprint_collection_points_endpoint_returns_zone_sampling_plan():
+    response = client.get("/stations/ikebukuro/fingerprint-collection-points")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body
+    assert body[0]["zone_id"]
+    assert body[0]["min_samples"] >= 1
+
+
 def test_localize_wifi_endpoint_returns_estimated_zone():
     response = client.post(
         "/localize/wifi",

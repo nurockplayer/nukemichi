@@ -129,6 +129,33 @@ class WifiFingerprint(BaseModel):
     device_type: str
 
 
+class StationSurveyNote(BaseModel):
+    note_id: str
+    station_id: str
+    floor_id: str
+    related_node_ids: list[str] = Field(default_factory=list)
+    related_zone_ids: list[str] = Field(default_factory=list)
+    source_type: Literal["manual_survey", "desk_research", "operator_note", "demo_seed"]
+    title: str
+    summary: str
+    observed_at: str
+    confidence: Literal["low", "medium", "high"]
+    status: Literal["needs_review", "accepted", "applied", "rejected"]
+    action_items: list[str] = Field(default_factory=list)
+
+
+class FingerprintCollectionPoint(BaseModel):
+    collection_point_id: str
+    station_id: str
+    zone_id: str
+    floor_id: str
+    suggested_node_id: str | None = None
+    label: str
+    instructions: str
+    min_samples: int = Field(ge=1)
+    device_types: list[str] = Field(default_factory=list)
+
+
 class Beacon(BaseModel):
     beacon_id: str
     station_id: str
@@ -163,6 +190,8 @@ class StationBundle(BaseModel):
     pois: list[Poi]
     zones: list[LocationZone]
     wifi_fingerprints: list[WifiFingerprint]
+    survey_notes: list[StationSurveyNote] = Field(default_factory=list)
+    fingerprint_collection_points: list[FingerprintCollectionPoint] = Field(default_factory=list)
     beacons: list[Beacon] = Field(default_factory=list)
     beacon_observations: list[BeaconObservation] = Field(default_factory=list)
     beacon_zone_mappings: list[BeaconZoneMapping] = Field(default_factory=list)

@@ -105,6 +105,71 @@
     { "fingerprint_id": "fp_east_exit_01", "station_id": "ikebukuro", "zone_id": "east_exit_underground_area", "floor_id": "B1", "observed_aps": [ { "bssid": "ap_east_exit_01", "ssid": "demo-east-exit", "rssi": -52 }, { "bssid": "ap_east_underground_01", "ssid": "demo-east-underground", "rssi": -58 }, { "bssid": "ap_elevator_east_01", "ssid": "demo-east-elevator", "rssi": -67 } ], "collected_at": "2026-05-01T10:41:00+09:00", "device_type": "demo_android" },
     { "fingerprint_id": "fp_east_exit_02", "station_id": "ikebukuro", "zone_id": "east_exit_underground_area", "floor_id": "B1", "observed_aps": [ { "bssid": "ap_east_exit_01", "ssid": "demo-east-exit", "rssi": -55 }, { "bssid": "ap_east_underground_02", "ssid": "demo-east-underground-2", "rssi": -62 }, { "bssid": "ap_elevator_east_01", "ssid": "demo-east-elevator", "rssi": -65 } ], "collected_at": "2026-05-01T10:44:00+09:00", "device_type": "demo_ios" }
   ],
+  "survey_notes": [
+    {
+      "note_id": "survey_ikebukuro_east_passage_001",
+      "station_id": "ikebukuro",
+      "floor_id": "B1",
+      "related_node_ids": ["east_underground_passage", "elevator_b1_to_1f_east"],
+      "related_zone_ids": ["east_exit_underground_area"],
+      "source_type": "demo_seed",
+      "title": "East underground passage elevator signage",
+      "summary": "Demo survey note representing a future field observation near the east underground passage and B1 to 1F elevator.",
+      "observed_at": "2026-05-20T14:30:00+09:00",
+      "confidence": "medium",
+      "status": "needs_review",
+      "action_items": ["Verify elevator walking distance", "Confirm signage visibility from JR East Gate side"]
+    },
+    {
+      "note_id": "survey_ikebukuro_west_passage_001",
+      "station_id": "ikebukuro",
+      "floor_id": "B1",
+      "related_node_ids": ["west_underground_passage", "escalator_b1_to_1f_west"],
+      "related_zone_ids": ["west_exit_underground_area"],
+      "source_type": "demo_seed",
+      "title": "West underground passage escalator route",
+      "summary": "Demo note for checking whether the west-side escalator should be represented as a preferred non-stairs route.",
+      "observed_at": "2026-05-20T15:10:00+09:00",
+      "confidence": "low",
+      "status": "needs_review",
+      "action_items": ["Check if route is barrier-free", "Decide whether elevator alternative exists nearby"]
+    }
+  ],
+  "fingerprint_collection_points": [
+    {
+      "collection_point_id": "cp_jr_east_gate_primary",
+      "station_id": "ikebukuro",
+      "zone_id": "jr_east_gate_area",
+      "floor_id": "B1",
+      "suggested_node_id": "jr_east_gate",
+      "label": "JR East Gate primary sample point",
+      "instructions": "Stand near the JR East Gate signage, face the central passage, and collect three demo Wi-Fi snapshots.",
+      "min_samples": 3,
+      "device_types": ["demo_android", "demo_ios"]
+    },
+    {
+      "collection_point_id": "cp_east_exit_underground_edge",
+      "station_id": "ikebukuro",
+      "zone_id": "east_exit_underground_area",
+      "floor_id": "B1",
+      "suggested_node_id": "east_underground_passage",
+      "label": "East underground edge sample point",
+      "instructions": "Collect samples between the east underground passage and Seibu side to help distinguish adjacent zones.",
+      "min_samples": 3,
+      "device_types": ["demo_android", "demo_ios"]
+    },
+    {
+      "collection_point_id": "cp_sunshine_city_exit_primary",
+      "station_id": "ikebukuro",
+      "zone_id": "sunshine_city_exit_area",
+      "floor_id": "1F",
+      "suggested_node_id": "sunshine_city_exit_area",
+      "label": "Sunshine City exit primary sample point",
+      "instructions": "Stand inside the 1F Sunshine City direction exit area and collect samples before leaving the station boundary.",
+      "min_samples": 3,
+      "device_types": ["demo_android", "demo_ios"]
+    }
+  ],
   "beacons": [
     { "beacon_id": "beacon_demo_jr_east", "station_id": "ikebukuro", "zone_id": "jr_east_gate_area", "uuid": "00000000-0000-4000-8000-000000000001", "major": 1, "minor": 101, "floor_id": "B1", "x": 220, "y": 170, "description": "Reserved optional iBeacon supplement for JR East Gate confidence." },
     { "beacon_id": "beacon_demo_sunshine", "station_id": "ikebukuro", "zone_id": "sunshine_city_exit_area", "uuid": "00000000-0000-4000-8000-000000000002", "major": 1, "minor": 201, "floor_id": "1F", "x": 860, "y": 125, "description": "Reserved optional iBeacon supplement for Sunshine City exit confidence." }
