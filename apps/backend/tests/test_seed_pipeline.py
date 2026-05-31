@@ -6,7 +6,9 @@ import sys
 from pathlib import Path
 
 from app.data_store import load_station_bundle
-from app.seed_pipeline import StationSeedDraft, dry_run_seed_draft
+from app.data_validation import validate_station_bundle
+from app.schemas import StationBundle
+from app.seed_pipeline import SeedPromotionError, StationSeedDraft, dry_run_seed_draft, promote_seed_draft
 
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -100,6 +102,33 @@ def test_seed_dry_run_reports_reference_and_duplicate_errors():
     assert "seed.edge.to_node_id" in issue_codes
 
 
+def test_promote_seed_draft_returns_valid_merged_bundle_without_mutating_source_bundle():
+    bundle = load_station_bundle("ikebukuro")
+    draft = StationSeedDraft.model_validate(_valid_seed_payload())
+
+    promoted = promote_seed_draft(bundle, draft)
+
+    assert validate_station_bundle(promoted) == []
+    assert "survey_east_locker_anchor" in {node.node_id for node in promoted.nodes}
+    assert "edge_east_passage_to_survey_locker" in {edge.edge_id for edge in promoted.edges}
+    assert "survey_east_locker" in {poi.poi_id for poi in promoted.pois}
+    assert "survey_east_locker_anchor" not in {node.node_id for node in bundle.nodes}
+    assert "survey_east_locker" not in {poi.poi_id for poi in bundle.pois}
+
+
+def test_promote_seed_draft_raises_for_invalid_seed():
+    payload = _valid_seed_payload()
+    payload["pois"][0]["anchor_node_id"] = "missing_anchor"
+    draft = StationSeedDraft.model_validate(payload)
+
+    try:
+        promote_seed_draft(load_station_bundle("ikebukuro"), draft)
+    except SeedPromotionError as error:
+        assert any(issue.code == "seed.poi.anchor_node_id" for issue in error.issues)
+    else:
+        raise AssertionError("Expected SeedPromotionError.")
+
+
 def test_seed_pipeline_cli_dry_run_returns_zero_for_valid_seed(tmp_path: Path):
     seed_path = tmp_path / "seed.json"
     seed_path.write_text(json.dumps(_valid_seed_payload()), encoding="utf-8")
@@ -116,6 +145,34 @@ def test_seed_pipeline_cli_dry_run_returns_zero_for_valid_seed(tmp_path: Path):
     assert "Dry run for ikebukuro" in result.stdout
     assert "nodes: 1" in result.stdout
     assert "pois: 1" in result.stdout
+
+
+def test_seed_pipeline_cli_output_writes_promoted_station_bundle(tmp_path: Path):
+    seed_path = tmp_path / "seed.json"
+    output_path = tmp_path / "promoted_station.json"
+    seed_path.write_text(json.dumps(_valid_seed_payload()), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "app.seed_pipeline",
+            "ikebukuro",
+            str(seed_path),
+            "--output",
+            str(output_path),
+        ],
+        cwd=BACKEND_DIR,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert "Promoted seed for ikebukuro" in result.stdout
+    promoted = StationBundle.model_validate(json.loads(output_path.read_text(encoding="utf-8")))
+    assert "survey_east_locker" in {poi.poi_id for poi in promoted.pois}
+    assert validate_station_bundle(promoted) == []
 
 
 def test_seed_pipeline_cli_dry_run_returns_one_for_invalid_seed(tmp_path: Path):

@@ -10,6 +10,7 @@ from typing import Sequence
 from pydantic import BaseModel, Field, ValidationError
 
 from app.data_store import load_station_bundle
+from app.data_validation import validate_station_bundle
 from app.schemas import (
     Edge,
     FingerprintCollectionPoint,
@@ -48,6 +49,12 @@ class SeedDryRunResult:
     @property
     def valid(self) -> bool:
         return not self.issues
+
+
+class SeedPromotionError(ValueError):
+    def __init__(self, issues: list[SeedValidationIssue]) -> None:
+        self.issues = issues
+        super().__init__("Seed draft is not valid for promotion.")
 
 
 class StationSeedDraft(BaseModel):
@@ -90,6 +97,41 @@ def dry_run_seed_draft(bundle: StationBundle, draft: StationSeedDraft) -> SeedDr
             ],
         },
         issues=issues,
+    )
+
+
+def promote_seed_draft(bundle: StationBundle, draft: StationSeedDraft) -> StationBundle:
+    issues = validate_seed_draft(bundle, draft)
+    if issues:
+        raise SeedPromotionError(issues)
+
+    promoted = bundle.model_copy(
+        update={
+            "nodes": [*bundle.nodes, *draft.nodes],
+            "edges": [*bundle.edges, *draft.edges],
+            "pois": [*bundle.pois, *draft.pois],
+            "zones": [*bundle.zones, *draft.zones],
+            "survey_notes": [*bundle.survey_notes, *draft.survey_notes],
+            "fingerprint_collection_points": [
+                *bundle.fingerprint_collection_points,
+                *draft.fingerprint_collection_points,
+            ],
+        }
+    )
+    bundle_issues = validate_station_bundle(promoted)
+    if bundle_issues:
+        raise SeedPromotionError([
+            SeedValidationIssue(f"promoted_station.{issue.code}", issue.message)
+            for issue in bundle_issues
+        ])
+    return promoted
+
+
+def write_station_bundle(bundle: StationBundle, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(bundle.model_dump(mode="json"), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
     )
 
 
@@ -292,12 +334,7 @@ def _format_dry_run(result: SeedDryRunResult) -> str:
         f"Dry run for {result.station_id}",
         f"summary: {result.summary or '(none)'}",
         "planned additions:",
-        f"  nodes: {result.additions.nodes}",
-        f"  edges: {result.additions.edges}",
-        f"  pois: {result.additions.pois}",
-        f"  zones: {result.additions.zones}",
-        f"  survey_notes: {result.additions.survey_notes}",
-        f"  fingerprint_collection_points: {result.additions.fingerprint_collection_points}",
+        _format_additions(result.additions),
     ]
     if result.issues:
         lines.append("issues:")
@@ -307,15 +344,29 @@ def _format_dry_run(result: SeedDryRunResult) -> str:
     return "\n".join(lines)
 
 
+def _format_additions(additions: SeedAdditions) -> str:
+    return "\n".join([
+        f"  nodes: {additions.nodes}",
+        f"  edges: {additions.edges}",
+        f"  pois: {additions.pois}",
+        f"  zones: {additions.zones}",
+        f"  survey_notes: {additions.survey_notes}",
+        f"  fingerprint_collection_points: {additions.fingerprint_collection_points}",
+    ])
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate Nukemichi station seed drafts before promotion.")
     parser.add_argument("station_id", help="Target station id, for example ikebukuro.")
     parser.add_argument("seed_path", type=Path, help="Path to a seed draft JSON file.")
     parser.add_argument("--dry-run", action="store_true", help="Validate and summarize without changing station data.")
+    parser.add_argument("--output", type=Path, help="Write a promoted station bundle to this JSON path.")
     args = parser.parse_args(argv)
 
-    if not args.dry_run:
-        parser.error("Only --dry-run is supported in this MVP pipeline.")
+    if args.dry_run and args.output:
+        parser.error("Use either --dry-run or --output, not both.")
+    if not args.dry_run and not args.output:
+        parser.error("Choose --dry-run or --output.")
 
     try:
         bundle = load_station_bundle(args.station_id)
@@ -325,8 +376,31 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     result = dry_run_seed_draft(bundle, draft)
-    print(_format_dry_run(result))
-    return 0 if result.valid else 1
+    if args.dry_run:
+        print(_format_dry_run(result))
+        return 0 if result.valid else 1
+
+    if result.issues:
+        print(_format_dry_run(result))
+        return 1
+
+    try:
+        promoted = promote_seed_draft(bundle, draft)
+    except SeedPromotionError as error:
+        failed_result = SeedDryRunResult(
+            station_id=result.station_id,
+            summary=result.summary,
+            additions=result.additions,
+            planned_ids=result.planned_ids,
+            issues=error.issues,
+        )
+        print(_format_dry_run(failed_result))
+        return 1
+
+    write_station_bundle(promoted, args.output)
+    print(f"Promoted seed for {bundle.station.station_id} to {args.output}")
+    print(_format_additions(result.additions))
+    return 0
 
 
 if __name__ == "__main__":

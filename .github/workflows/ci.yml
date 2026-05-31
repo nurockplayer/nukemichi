@@ -36,6 +36,10 @@ jobs:
         working-directory: apps/backend
         run: uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --dry-run
 
+      - name: Promote example seed to review artifact
+        working-directory: apps/backend
+        run: uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --output /tmp/ikebukuro_promoted_station.json
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest

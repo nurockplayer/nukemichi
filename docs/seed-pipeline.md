@@ -31,6 +31,16 @@ uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locke
 
 Expected output includes planned addition counts and any validation issues.
 
+## Promotion Output Command
+
+To produce a merged station bundle for review:
+
+```bash
+uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --output /tmp/ikebukuro_promoted_station.json
+```
+
+This writes a full `StationBundle` JSON to the output path. It does not modify `apps/backend/app/data/ikebukuro_demo_station.json`.
+
 ## Validation Rules
 
 The dry-run validator checks:
@@ -47,19 +57,20 @@ The dry-run validator checks:
 
 ## Promotion Rules
 
-For now, promotion is manual:
+For now, promotion into the live demo file is manual:
 
 1. Create a seed draft JSON.
 2. Run the dry-run command.
-3. Review the output in a pull request or commit diff.
-4. Copy accepted records into `apps/backend/app/data/ikebukuro_demo_station.json`.
-5. Run backend tests and data validation.
+3. Run the promotion output command.
+4. Review the generated full station bundle.
+5. Copy accepted records into `apps/backend/app/data/ikebukuro_demo_station.json`.
+6. Run backend tests and data validation.
 
 This keeps the MVP honest: the current Ikebukuro data is still fictional and hand-authored, but every new data change has a repeatable review step before it affects routing.
 
 ## Current Limits
 
-- The seed pipeline does not write to the main demo JSON.
+- The seed pipeline does not write directly to the main demo JSON.
 - It does not import PostGIS data.
 - It does not verify real-world station accuracy.
 - It does not collect real Wi-Fi or iBeacon scans.

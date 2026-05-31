@@ -86,6 +86,13 @@ cd apps/backend
 uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --dry-run
 ```
 
+Write a promoted station bundle for review:
+
+```bash
+cd apps/backend
+uv run python -m app.seed_pipeline ikebukuro app/data/seeds/ikebukuro_east_locker_seed.example.json --output /tmp/ikebukuro_promoted_station.json
+```
+
 Frontend local dev:
 
 ```bash
