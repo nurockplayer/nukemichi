@@ -7,6 +7,7 @@ from fastapi import HTTPException
 
 from app.schemas import (
     Edge,
+    Node,
     RouteInstruction,
     RoutePathNode,
     RoutePreferences,
@@ -67,7 +68,7 @@ def calculate_route(
     return RouteResponse(
         station_id=bundle.station.station_id,
         distance_m=round(real_distance),
-        estimated_minutes=max(1, round(real_distance / WALKING_METERS_PER_MINUTE)),
+        estimated_minutes=0 if real_distance == 0 else max(1, round(real_distance / WALKING_METERS_PER_MINUTE)),
         start_node_id=start_node_id,
         destination_poi_id=to_poi_id,
         floors=floors,
@@ -83,7 +84,14 @@ def calculate_route(
             )
             for node in path_nodes
         ],
-        instructions=_build_instructions(path_edges, nodes_by_id, destination.name, preferences.language),
+        instructions=_build_instructions(
+            path_edges,
+            nodes_by_id,
+            destination.name,
+            preferences.language,
+            start_node_id,
+            end_node_id,
+        ),
     )
 
 
@@ -149,10 +157,22 @@ def _reconstruct_edges(
 
 def _build_instructions(
     edges: list[Edge],
-    nodes_by_id: dict[str, object],
+    nodes_by_id: dict[str, Node],
     destination_name: str,
     language: str,
+    start_node_id: str,
+    end_node_id: str,
 ) -> list[RouteInstruction]:
+    if not edges:
+        start_floor_id = nodes_by_id[start_node_id].floor_id
+        return [
+            RouteInstruction(
+                type="arrive",
+                text=_already_near_text(language, destination_name),
+                floor_id=start_floor_id,
+            )
+        ]
+
     instructions: list[RouteInstruction] = []
     for edge in edges:
         from_node = nodes_by_id[edge.from_node_id]
@@ -174,14 +194,10 @@ def _build_instructions(
                 distance_m=round(edge.distance_m),
             ))
 
-    if edges:
-        final_floor = edges[-1].to_floor_id
-    else:
-        final_floor = ""
     instructions.append(RouteInstruction(
         type="arrive",
         text=_arrive_text(language, destination_name),
-        floor_id=final_floor,
+        floor_id=nodes_by_id[end_node_id].floor_id,
     ))
     return instructions
 
@@ -196,9 +212,9 @@ def _walk_text(language: str, distance_m: int, target_name: str) -> str:
 
 def _floor_change_text(language: str, method: str, to_floor_id: str) -> str:
     if language == "ja":
-        return f"{method}で{to_floor_id}へ移動します。"
+        return f"{_localized_method_name(method, language)}で{to_floor_id}へ移動します。"
     if language == "zh-TW":
-        return f"搭乘 {method} 前往 {to_floor_id}。"
+        return f"搭乘{_localized_method_name(method, language)}前往 {to_floor_id}。"
     return f"Take the {method} to {to_floor_id}."
 
 
@@ -208,6 +224,30 @@ def _arrive_text(language: str, destination_name: str) -> str:
     if language == "zh-TW":
         return f"抵達 {destination_name}。"
     return f"Arrive at {destination_name}."
+
+
+def _already_near_text(language: str, destination_name: str) -> str:
+    if language == "ja":
+        return f"すでに{destination_name}付近にいます。"
+    if language == "zh-TW":
+        return f"你已經在 {destination_name} 附近。"
+    return f"You are already near {destination_name}."
+
+
+def _localized_method_name(method: str, language: str) -> str:
+    localized = {
+        "zh-TW": {
+            "elevator": "電梯",
+            "escalator": "手扶梯",
+            "stairs": "樓梯",
+        },
+        "ja": {
+            "elevator": "エレベーター",
+            "escalator": "エスカレーター",
+            "stairs": "階段",
+        },
+    }
+    return localized.get(language, {}).get(method, method)
 
 
 def _floor_order(bundle: StationBundle, floor_id: str) -> int:

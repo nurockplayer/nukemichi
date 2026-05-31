@@ -152,6 +152,10 @@ export function App() {
       setLocalizationResult(result);
       if (result.estimated_zone_id) {
         setSelectedStartZoneId(result.estimated_zone_id);
+        const estimatedZone = stationMap?.zones.find((zone) => zone.zone_id === result.estimated_zone_id);
+        if (estimatedZone) {
+          setSelectedFloorId(estimatedZone.floor_id);
+        }
       }
       if (result.nearest_start_node_ids[0]) {
         setSelectedStartNodeId(result.nearest_start_node_ids[0]);
@@ -164,6 +168,10 @@ export function App() {
   async function handleRoute() {
     if (!selectedDestinationPoiId) {
       setError("Choose a destination first.");
+      return;
+    }
+    if (!selectedStartZoneId && !selectedStartNodeId) {
+      setError("Choose your current station zone or start node first.");
       return;
     }
     setError(null);
@@ -414,6 +422,8 @@ function DestinationPanel({
   const {
     stationMap,
     poiFilters,
+    selectedStartNodeId,
+    selectedStartZoneId,
     selectedDestinationPoiId,
     setPoiFilters,
     setSelectedDestinationPoiId,
@@ -489,7 +499,7 @@ function DestinationPanel({
           ))}
         </div>
 
-        <Button onClick={onRoute} disabled={!selectedPoi || isRouting}>
+        <Button onClick={onRoute} disabled={!selectedPoi || (!selectedStartNodeId && !selectedStartZoneId) || isRouting}>
           <ArrowRight data-icon="inline-start" />
           {isRouting ? "Calculating..." : "Calculate route"}
         </Button>
@@ -593,7 +603,12 @@ function IndoorMapView() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <CardTitle>Indoor map</CardTitle>
-            <CardDescription>Zone-first demo map with highlighted routes and Wi-Fi estimate.</CardDescription>
+            <CardDescription>
+              Zone-first demo map with highlighted routes and Wi-Fi estimate.
+              {routeResult && routeResult.floors.length > 1
+                ? ` Route spans ${routeResult.floors.join(", ")}; switch floor tabs to inspect the full path.`
+                : ""}
+            </CardDescription>
           </div>
           <div className="flex gap-2">
             {stationMap?.floors.map((floor) => (

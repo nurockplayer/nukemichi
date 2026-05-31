@@ -1,10 +1,14 @@
 # Nukemichi
 
+[![CI](https://github.com/nurockplayer/nukemichi/actions/workflows/ci.yml/badge.svg)](https://github.com/nurockplayer/nukemichi/actions/workflows/ci.yml)
+
 Nukemichi is an indoor navigation MVP for large Tokyo stations. The first target station is Ikebukuro. It helps users find the nearest gate, exit, POI, and route inside complex station buildings.
 
 Product direction: Ikebukuro-first / Wi-Fi-first / iBeacon-as-supplement.
 
 Nukemichi does not try to locate the user at an exact coordinate in the MVP. It estimates the user’s nearby station zone, such as a gate area, exit area, or underground passage, and uses that zone as a practical navigation starting point.
+
+> Demo data warning: current Ikebukuro station data is fictional, hand-authored, and intended only for product and engineering demos. It is not yet suitable for real navigation.
 
 ## MVP scope
 
@@ -47,6 +51,8 @@ Docker Compose:
 docker compose up
 ```
 
+Docker Compose starts Postgres/PostGIS, the FastAPI backend, and an nginx-served frontend build. In Docker, the frontend calls `/api`; nginx proxies that path to the backend service at `http://backend:8000`. Local Vite development uses the same `/api` base path and proxies to `http://localhost:8000`.
+
 Backend local dev:
 
 ```bash
@@ -75,6 +81,12 @@ Frontend build:
 ```bash
 cd apps/frontend
 pnpm build
+```
+
+Root frontend build shortcut:
+
+```bash
+pnpm build:frontend
 ```
 
 Local URLs:
@@ -144,6 +156,20 @@ Phase 1:
 - demo Wi-Fi fingerprint localization
 - zone-based localization
 - POI / gate / exit search
+
+Phase 1.1:
+
+- add CI
+- add backend tests
+- validate demo graph integrity
+- improve Docker / frontend API proxy
+
+Phase 1.2:
+
+- expand Ikebukuro graph
+- add real station survey notes
+- add POI editor
+- add fingerprint collection schema
 
 Phase 2:
 

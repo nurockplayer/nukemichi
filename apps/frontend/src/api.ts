@@ -20,10 +20,38 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `Request failed: ${response.status}`);
+    throw new Error(formatApiError(message, response.status));
   }
 
   return response.json() as Promise<T>;
+}
+
+function formatApiError(message: string, status: number) {
+  if (!message) {
+    return `Request failed with status ${status}.`;
+  }
+
+  try {
+    const parsed = JSON.parse(message) as { detail?: unknown };
+    if (typeof parsed.detail === "string") {
+      return parsed.detail;
+    }
+    if (Array.isArray(parsed.detail)) {
+      return parsed.detail
+        .map((item) => {
+          if (item && typeof item === "object" && "msg" in item && typeof item.msg === "string") {
+            return item.msg;
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .join(" ");
+    }
+  } catch {
+    return message;
+  }
+
+  return message;
 }
 
 export function getStations() {
