@@ -70,6 +70,13 @@ cd apps/backend
 uv run pytest -q
 ```
 
+Validate demo station data:
+
+```bash
+cd apps/backend
+uv run python -m app.validate_data ikebukuro
+```
+
 Frontend local dev:
 
 ```bash

@@ -97,3 +97,10 @@ Before merging new graph data:
 - Every accessibility claim is represented on edges, not only in prose.
 - Demo localization still returns a zone, not a coordinate.
 - README or this guide is updated when data collection rules change.
+
+Run the backend validator before opening a PR:
+
+```bash
+cd apps/backend
+uv run python -m app.validate_data ikebukuro
+```
